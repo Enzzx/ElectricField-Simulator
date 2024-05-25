@@ -1,0 +1,20 @@
+* {
+  font-family: Arial;
+  color: white;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+canvas {
+  display: block;
+}
+
+button {
+  background: tomato;
+  padding: 5px 20px;
+  border: none;
+  border-radius: 10%
+}
