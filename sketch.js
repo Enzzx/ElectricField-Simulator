@@ -1,20 +1,21 @@
-const vectors = 40
+const vectors = 40;
 const extraVectors = 2
 let xDrop, yDrop
 let pressed = false
 let message = true
 
 let slider, check1, check2
-let arrow
+let arrow;
 const matrix = []
 let charges = []
+let dragging
 
 function preload() {
   arrow = loadImage("arrow.png")
 }
 
 function setup() {
-  frameRate(15)
+  frameRate(10)
   const canvas = createCanvas(700, 700)
   angleMode(DEGREES)
 
@@ -97,17 +98,19 @@ function draw() {
 
 function mousePressed() {
   if (mouseX > width || mouseY > height || message) { return }
-  charges.push(new charge(mouseX, mouseY, chargeMass, cation))
+  dragging = new charge(mouseX, mouseY, chargeMass, cation)
+  charges.push(dragging)
 }
 function mouseDragged() {
-  if (mouseX > width || mouseY > height || message) { return }
+  if (dragging == undefined || message) { return }
   pressed = true
-  charges[charges.length-1].x = mouseX
-  charges[charges.length-1].y = mouseY
+  dragging.x = mouseX
+  dragging.y = mouseY
 }
 function mouseReleased() {
-  if (mouseX > width || mouseY > height || message) { return }
-  charges.pop()
+  const index = charges.indexOf(dragging)
+  if (index > -1) { charges.splice(index, 1) }
+  dragging = undefined
 }
 
 class charge {
