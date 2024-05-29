@@ -1,11 +1,11 @@
-const vectors = 40;
+const vectors = 40
 const extraVectors = 2
 let xDrop, yDrop
 let pressed = false
 let message = true
 
 let slider, check1, check2
-let arrow;
+let arrow
 const matrix = []
 let charges = []
 
@@ -54,7 +54,7 @@ function setup() {
   
   //criar carga elétrica
   canvas.mouseClicked(() => {
-    if (charges.length >= 7 || pressed) {
+    if (charges.length >= 7 || pressed || message) {
       pressed = false
       return;
     }
@@ -96,17 +96,17 @@ function draw() {
 }
 
 function mousePressed() {
-  if (mouseX > width || mouseY > height) { return }
+  if (mouseX > width || mouseY > height || message) { return }
   charges.push(new charge(mouseX, mouseY, chargeMass, cation))
 }
 function mouseDragged() {
-  if (mouseX > width || mouseY > height) { return }
+  if (mouseX > width || mouseY > height || message) { return }
   pressed = true
   charges[charges.length-1].x = mouseX
   charges[charges.length-1].y = mouseY
 }
 function mouseReleased() {
-  if (mouseX > width || mouseY > height) { return }
+  if (mouseX > width || mouseY > height || message) { return }
   charges.pop()
 }
 
@@ -173,7 +173,6 @@ class vector {
     push()
     translate(this.x, this.y)
     rotate(this.graus)
-    //tint(255, 0, 0, 100)
     scale(map(this.force, 0, 100, 0.8, 1.8))
     image(arrow, 0, 0, width / (vectors * 1.5), height / (vectors * 1.5))
     //stroke(0)
