@@ -1,4 +1,4 @@
-const vectors = 40;
+const vectors = 35;
 const extraVectors = 2
 let xDrop, yDrop
 let pressed = false
@@ -8,11 +8,8 @@ let slider, check1, check2
 let arrow;
 const matrix = []
 let charges = []
-let dragging
+let draggingCharge
 
-function preload() {
-  arrow = loadImage("arrow.png")
-}
 
 function setup() {
   frameRate(10)
@@ -73,7 +70,7 @@ function draw() {
     textSize(18)
     text("Aperte 'Apagar' para limpar a tela", width/2, height - 100)
   } else {
-    background(220)
+    background(230)
     fill("black")
     chargeMass = slider.value()
     cation = check1.checked()
@@ -98,19 +95,19 @@ function draw() {
 
 function mousePressed() {
   if (mouseX > width || mouseY > height || message) { return }
-  dragging = new charge(mouseX, mouseY, chargeMass, cation)
-  charges.push(dragging)
+  draggingCharge = new charge(mouseX, mouseY, chargeMass, cation)
+  charges.push(draggingCharge)
 }
 function mouseDragged() {
-  if (dragging == undefined || message) { return }
+  if (draggingCharge == undefined || message) { return }
   pressed = true
-  dragging.x = mouseX
-  dragging.y = mouseY
+  draggingCharge.x = mouseX
+  draggingCharge.y = mouseY
 }
 function mouseReleased() {
-  const index = charges.indexOf(dragging)
+  const index = charges.indexOf(draggingCharge)
   if (index > -1) { charges.splice(index, 1) }
-  dragging = undefined
+  draggingCharge = undefined
 }
 
 class charge {
@@ -176,10 +173,10 @@ class vector {
     push()
     translate(this.x, this.y)
     rotate(this.graus)
-    scale(map(this.force, 0, 100, 0.8, 1.8))
-    image(arrow, 0, 0, width / (vectors * 1.5), height / (vectors * 1.5))
-    //stroke(0)
-    //line(0, 0, map(this.force, 0, 100, 0, 20), 0)
+    scale(map(this.force, 0, 100, 0.6, 1.4))
+    fill(map(this.force, 0, 100, 60, 10))
+    rect(0, -1, 10, 1)
+    triangle(10, -3, 10, 3, 13, 0)
     pop()
   }
 }
