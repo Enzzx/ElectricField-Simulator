@@ -1,45 +1,49 @@
-const vectors = 35;
+/* wid = largura
+   hei = altura
+   wV = vetores no eixo x */
+const wid = 800
+const hei = 550
+const wV = 30
+const hV = (hei/wid) * wV
 const extraVectors = 2
+const matrix = []
+
 let xDrop, yDrop
 let pressed = false
 let message = true
-
 let slider, check1, check2
-let arrow;
-const matrix = []
 let charges = []
+let particles = []
 let draggingCharge
 
 
 function setup() {
-  frameRate(10)
-  const canvas = createCanvas(700, 700)
+  const canvas = createCanvas(wid, hei)
   angleMode(DEGREES)
 
   //gerar grid de vetores
-  const vectorW = int(width / vectors)
-  const vectorH = int(height / vectors)
-
+  const vectorW = int(width / wV)
+  const vectorH = int(height / hV)
   yDrop = -vectorH * extraVectors
 
-  for (let i = 0; i < vectors + 2 * extraVectors; i++) {
+  for (let i = 0; i < hV + 2 * extraVectors; i++) {
     const rows = []
     matrix.push(rows)
 
     xDrop = -vectorW * extraVectors
-    for (let j = 0; j < vectors + 2 * extraVectors; j++) {
-      rows.push(new vector(xDrop, yDrop))
+    for (let j = 0; j < wV + 2 * extraVectors; j++) {
+      rows.push(new Vector(xDrop, yDrop))
       xDrop += vectorW
     }
     yDrop += vectorH
   }
-
 
   //limpar tela
   const trash = createButton("Apagar")
   trash.position(width - 80, height + 20)
   trash.mousePressed(() => {
     charges.length = 0
+    particles.length = 0
     message = false
   })
   
@@ -52,12 +56,17 @@ function setup() {
   
   //criar carga elétrica
   canvas.mouseClicked(() => {
-    if (charges.length >= 7 || pressed || message) {
+    if ((charges.length >= 7 && !keyIsDown(SHIFT)) || pressed || message) {
       pressed = false
       return;
     }
-    charges.push(new charge(mouseX, mouseY, chargeMass, cation))
-  });
+    
+    if (keyIsDown(SHIFT)) {
+      particles.push(new Particle(mouseX, mouseY))
+    } else {
+      charges.push(new Charge(mouseX, mouseY, chargeMass, cation))
+    }
+  })
 }
 
 function draw() {
@@ -65,8 +74,8 @@ function draw() {
     background(30)
     fill(255)
     textSize(30)
-    textAlign(CENTER)
-    text(`Pressione para posicionar uma carga\n Arraste para simular uma carga`, width/2, height/2)
+    textAlign(CENTER, BOTTOM)
+    text(`clique para posicionar uma carga\nArraste para simular uma carga\nPressione "shift" e clique para soltar carga de teste`, width/2, height/2)
     textSize(18)
     text("Aperte 'Apagar' para limpar a tela", width/2, height - 100)
   } else {
@@ -84,18 +93,24 @@ function draw() {
       rows.forEach((vector) => {
         vector.direction()
         vector.magnitude()
-      });
-    });
+      })
+    })
 
     charges.forEach((charge) => {
       charge.position()
-    });
+    })
+    
+    particles.forEach(particle => {
+      particle.direction()
+      particle.position()
+    })
   }
 }
 
+
 function mousePressed() {
-  if (mouseX > width || mouseY > height || message) { return }
-  draggingCharge = new charge(mouseX, mouseY, chargeMass, cation)
+  if (mouseX > width || mouseY > height || message || keyIsDown(SHIFT)) { return }
+  draggingCharge = new Charge(mouseX, mouseY, chargeMass, cation)
   charges.push(draggingCharge)
 }
 function mouseDragged() {
@@ -110,7 +125,8 @@ function mouseReleased() {
   draggingCharge = undefined
 }
 
-class charge {
+  
+class Charge {
   constructor(x, y, mass, positive) {
     this.x = x
     this.y = y
@@ -127,7 +143,7 @@ class charge {
 }
 
 
-class vector {
+class Vector {
   constructor(x, y) {
     this.x = x
     this.y = y
@@ -148,24 +164,23 @@ class vector {
     let yTotal = 0
     
     charges.forEach(Q => {
-      //lei de coulomb: E = (k*Q*q)/d**2
-      //E: força elétrica; k: constante de coulomb; Q, q: carga elétrica e de teste; d: distância
+      //lei de coulomb: F = (k*Q*q)/d**2
+      //F: força elétrica; k: constante de coulomb; Q, q: carga elétrica e de teste; d: distância
       const deltaX = Q.x - this.x
       const deltaY = Q.y - this.y
       this.graus = atan2(deltaY, deltaX)
       let d = sqrt(deltaX**2 + deltaY**2)
       
-      let E = Q.positive ? -(K*Q.mass)/d**2 : (K*Q.mass)/d**2
+      let F = Q.positive ? -(K*Q.mass)/d**2 : (K*Q.mass)/d**2
       
       //calcular força total em cada eixo
-      xTotal += E * cos(this.graus)
-      yTotal += E * sin(this.graus)
+      xTotal += F * cos(this.graus)
+      yTotal += F * sin(this.graus)
     })
                              
     this.force = sqrt(xTotal**2 + yTotal**2) * 2 //* 2 apenas para aumentar a escala dos vetores
-    this.graus = atan2(yTotal, xTotal)
-    
     this.force = this.force > 100 ? 100 : this.force
+    this.graus = atan2(yTotal, xTotal)
   }
 
   magnitude() {
@@ -180,6 +195,30 @@ class vector {
     pop()
   }
 }
+  
+class Particle extends Vector {
+  constructor(x, y) {
+    super(x, y)
+    this.velX = 0
+    this.velY = 0
+  }
+  
+  position() {
+    //a = F/m
+    //a: aceleração; F: força elétrica; m: massa da carga de teste
+    this.velX += (this.force * cos(this.graus))/15
+    this.velY += (this.force * sin(this.graus))/15
+    
+    this.velX = (this.x > width+7 || this.x < 0-7) && (this.velX > 4 || this.velX < -4) ? 1 : this.velX
+    this.velY = (this.y > height+7 || this.y < 0-7) && (this.velY > 4 || this.velY < -4) ? 1 : this.velY 
+    
+    this.x += this.velX
+    this.y += this.velY
+    fill("darkred")
+    circle(this.x, this.y, 14)
+  }
+}
+  
 
 function checkVerification() {
   if (
