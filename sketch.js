@@ -2,7 +2,7 @@
    hei = altura
    wV = vetores no eixo x */
 const wid = 800
-const hei = 550
+const hei = 600
 const wV = 30
 const hV = (hei/wid) * wV
 const extraVectors = 2
@@ -20,6 +20,7 @@ let draggingCharge
 function setup() {
   const canvas = createCanvas(wid, hei)
   angleMode(DEGREES)
+  noStroke()
 
   //gerar grid de vetores
   const vectorW = int(width / wV)
@@ -56,7 +57,7 @@ function setup() {
   
   //criar carga elétrica
   canvas.mouseClicked(() => {
-    if ((charges.length >= 7 && !keyIsDown(SHIFT)) || pressed || message) {
+    if ((charges.length >= 8 && !keyIsDown(SHIFT)) || pressed || message) {
       pressed = false
       return;
     }
@@ -71,22 +72,22 @@ function setup() {
 
 function draw() {
   if (message) {
-    background(30)
+    background(40)
     fill(255)
-    textSize(30)
+    textSize(wid/25)
     textAlign(CENTER, BOTTOM)
     text(`clique para posicionar uma carga\nArraste para simular uma carga\nPressione "shift" e clique para soltar carga de teste`, width/2, height/2)
     textSize(18)
     text("Aperte 'Apagar' para limpar a tela", width/2, height - 100)
   } else {
-    background(230)
+    background(10)
     fill("black")
     chargeMass = slider.value()
     cation = check1.checked()
     anion = check2.checked()
     textSize(20)
     textAlign(LEFT)
-    fill("purple")
+    fill("violet")
     text(`Massa: ${chargeMass}  carga: ${cation ? "Positiva" : "Negativa"}`, 0, height - 5)
 
     matrix.forEach((rows) => {
@@ -136,7 +137,6 @@ class Charge {
   }
 
   position() {
-    noStroke()
     fill(this.color)
     circle(this.x, this.y, map(this.mass, 50, 125, 20, 40))
   }
@@ -171,7 +171,7 @@ class Vector {
       this.graus = atan2(deltaY, deltaX)
       let d = sqrt(deltaX**2 + deltaY**2)
       
-      let F = Q.positive ? -(K*Q.mass)/d**2 : (K*Q.mass)/d**2
+      let F = Q.positive ? (K*-Q.mass)/d**2 : (K*Q.mass)/d**2
       
       //calcular força total em cada eixo
       xTotal += F * cos(this.graus)
@@ -188,10 +188,11 @@ class Vector {
     push()
     translate(this.x, this.y)
     rotate(this.graus)
-    scale(map(this.force, 0, 100, 0.6, 1.4))
-    fill(map(this.force, 0, 100, 60, 10))
-    rect(0, -1, 10, 1)
-    triangle(10, -3, 10, 3, 13, 0)
+    scale(map(this.force, 0, 100, 0.7, 1.6))
+    //fill(map(this.force, 0, 100, 60, 10))
+    fill(lerpColor(color(0, 140, 0), color(200, 40, 40), map(this.force, 0, 100, 0, 1)))
+    rect(0, -1, 10, 2)
+    triangle(10, -4, 10, 4, 14, 0)
     pop()
   }
 }
@@ -209,12 +210,15 @@ class Particle extends Vector {
     this.velX += (this.force * cos(this.graus))/15
     this.velY += (this.force * sin(this.graus))/15
     
-    this.velX = (this.x > width+7 || this.x < 0-7) && (this.velX > 4 || this.velX < -4) ? 1 : this.velX
-    this.velY = (this.y > height+7 || this.y < 0-7) && (this.velY > 4 || this.velY < -4) ? 1 : this.velY 
+    this.velX = this.x > width+7 && (this.velX > 4 || this.velX < -4) ? -1 : this.velX
+    this.velX = this.x < 0-7 && (this.velX > 4 || this.velX < -4) ? 1 : this.velX
+    
+    this.velY = this.y > height+7 && (this.velY > 4 || this.velY < -4) ? -1 : this.velY 
+    this.velY = this.y < 0-7 && (this.velY > 4 || this.velY < -4) ? 1 : this.velY 
     
     this.x += this.velX
     this.y += this.velY
-    fill("darkred")
+    fill("firebrick")
     circle(this.x, this.y, 14)
   }
 }
